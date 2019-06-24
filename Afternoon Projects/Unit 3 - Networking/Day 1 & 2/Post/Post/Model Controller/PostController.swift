@@ -10,12 +10,12 @@ import Foundation
 
 class PostController {
     
-    static let baseURL = URL(string: "https://devmtn-posts.firebaseio.com/posts")
+    let baseURL = URL(string: "https://devmtn-posts.firebaseio.com/posts")
     
     var posts = [Post]()
     
-    func fetchPosts(completion: @escaping(Post?) -> Void) {
-        guard let baseURL = PostController.baseURL else { completion(nil); return }
+    func fetchPosts(completion: @escaping() -> Void) {
+        guard let baseURL = baseURL else { completion(); return }
         let getterEndpoint = baseURL.appendingPathExtension("json")
         
         var request = URLRequest(url: getterEndpoint)
@@ -25,23 +25,23 @@ class PostController {
         let dataTask = URLSession.shared.dataTask(with: request) { (data, _, error) in
             if let error = error {
                 print(error.localizedDescription)
-                completion(nil)
+                completion()
                 return
             }
             
-            guard let data = data else { completion(nil); return }
+            guard let data = data else { completion(); return }
             
             let decoder = JSONDecoder()
             
             do {
                 let postsDictionary = try decoder.decode([String:Post].self, from: data)
                 var posts = postsDictionary.compactMap({ ($0.value) })
-                posts.sort(by: { $0.timeStamp > $1.timeStamp } )
+                posts.sort(by: { $0.timestamp > $1.timestamp } )
                 self.posts = posts
-                completion(nil)
+                completion()
             } catch {
-                print(error.localizedDescription)
-                completion(nil)
+                print("error \(error.localizedDescription)")
+                completion()
                 return
             }
         }
