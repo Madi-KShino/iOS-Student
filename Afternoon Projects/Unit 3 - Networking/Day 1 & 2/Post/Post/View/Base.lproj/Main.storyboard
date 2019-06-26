@@ -58,7 +58,13 @@
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
-                    <navigationItem key="navigationItem" title="Posts" id="ZRE-oN-Ax4"/>
+                    <navigationItem key="navigationItem" title="Posts" id="ZRE-oN-Ax4">
+                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="a0R-bz-bU8">
+                            <connections>
+                                <action selector="addButtonTapped:" destination="BYZ-38-t0r" id="R7j-q5-OdB"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
                         <outlet property="tableView" destination="4E1-81-mAs" id="QTO-CU-fdt"/>
                     </connections>

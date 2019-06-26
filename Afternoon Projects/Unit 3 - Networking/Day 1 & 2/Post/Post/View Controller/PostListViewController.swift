@@ -35,12 +35,18 @@ class PostListViewController: UIViewController, UITableViewDelegate, UITableView
         tableView.refreshControl = refreshControl
         refreshControl.addTarget(self, action: #selector(refreshControlPulled), for: .valueChanged)
         
+        UIApplication.shared.isNetworkActivityIndicatorVisible = true
         postController.fetchPosts {
             self.reloadTableView()
         }
     }
     
-    //FUNCTIONS
+    //ACTIONS
+    @IBAction func addButtonTapped(_ sender: Any) {
+        addPostAlert()
+    }
+    
+    //FUNCTIONS - REFRESH
     @objc func refreshControlPulled() {
         postController.fetchPosts {
             self.reloadTableView()
@@ -49,7 +55,46 @@ class PostListViewController: UIViewController, UITableViewDelegate, UITableView
             }
         }
     }
+    //FUNCTIONS - ADD ALERT
+    func addPostAlert() {
+        let alertController = UIAlertController(title: "New Post", message: "Add a new message to the board.", preferredStyle: .alert)
+        
+        var messageTextField = UITextField()
+        alertController.addTextField { (textField) in
+            textField.placeholder = "What do you want to say?"
+            messageTextField = textField
+        }
+        
+        var usernameTextField = UITextField()
+        alertController.addTextField { (usernameField) in
+            usernameField.placeholder = "Add your name..."
+            usernameTextField = usernameField
+        }
+        
+        let addAction = UIAlertAction(title: "Add", style: .default) { (addAction) in
+            guard let username = usernameTextField.text, !username.isEmpty,
+                let message = messageTextField.text, !message.isEmpty
+                else { self.presentErrorAlert(); return }
+            self.postController.addNewPostWith(username: username, text: message, completion: {
+                self.reloadTableView()
+            })
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        alertController.addAction(addAction)
+        alertController.addAction(cancelAction)
+        present(alertController, animated: true, completion: nil)
+    }
     
+    //FUNCTIONS - ERROR ALERT
+    func presentErrorAlert() {
+        let alertController = UIAlertController(title: "Incomplete Form", message: "Make sure to add a username and a message", preferredStyle: .alert)
+        let okayAction = UIAlertAction(title: "Got it", style: .default, handler: nil)
+        alertController.addAction(okayAction)
+        present(alertController, animated: true, completion: nil)
+    }
+    
+    //FUNCTIONS - RELOAD
     func reloadTableView() {
         DispatchQueue.main.async {
             UIApplication.shared.isNetworkActivityIndicatorVisible = false
@@ -69,16 +114,15 @@ class PostListViewController: UIViewController, UITableViewDelegate, UITableView
         cell.detailTextLabel?.text = "\(post.username) - \(post.timestamp)"
         return cell
     }
-    
+}
 
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+//PROTOCOL CONFORMANCE
+extension PostListViewController {
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if indexPath.row >= postController.posts.count - 1 {
+            postController.fetchPosts(reset: false) {
+                self.reloadTableView()
+            }
+        }
     }
-    */
-
 }
